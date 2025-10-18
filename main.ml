@@ -1,58 +1,81 @@
 open Unix
+open Util
+open Config;;
+
+Arg.parse
+  [
+    "-id", Arg.Set_int client_id, "client id";
+    "-n", Arg.Set_string activity.name, "set name";
+    "-d", Arg.Set_string activity.details, "set details";
+    "-s", Arg.Set_string activity.state, "set state";
+    ( "-t",
+      Arg.Set_int activity.t,
+      "set type \
+       (https://discord.com:2053/developers/docs/events/gateway-events#activity-object-activity-types)"
+    );
+    "-start", Arg.Set_int activity.started, "set started unix milis timestamp";
+    ( "-tick",
+      Arg.Set_int sleep_seconds,
+      "seconds to wait between sending activity to discord" );
+    "-debug", Arg.Set dbg, "debug logs";
+    ( "-sock",
+      Arg.Set_string socketPath,
+      "set discord ipc unix socket (or just pass `$(ss -lx | grep -o '[^ \
+       ]*discord[^ ]*' | head -n 1)`)" );
+  ]
+  (fun _ -> ())
+  "discaml cli arguments:"
 
 let sock = socket PF_UNIX SOCK_STREAM 0
-let socketPath = "/run/user/1000/discord-ipc-0"
-let connect () = Unix.connect sock (ADDR_UNIX socketPath)
-let dbg = true
 
-let msg =
-  {|{"cmd":"SET_ACTIVITY","args":{"activity":{"details":"what?","name":"","state":"hello?","type":0},"pid":"9999"},"evt":null,"nonce":"-"}|}
+let get_msg () : string =
+  let timestamp_start =
+    !(activity.started)
+    (* ((int_of_float (Unix.gettimeofday () *. 1000.0)) - 49020000) *)
+  in
+  Printf.sprintf
+    {|
+    {"cmd":"SET_ACTIVITY","args":{"activity":{
+    "name":"%s",
+    "details":"%s",
+    "state":"%s",
+    "type":%d,
+    "timestamps":{"start":%d}
+    },
+    "pid":"9999"},"nonce":"-"}
+    |}
+    !(activity.name)
+    !(activity.details)
+    !(activity.state)
+    !(activity.t)
+    timestamp_start
+  |> String.split_on_char '\n'
+  |> String.concat ""
+  |> String.split_on_char ' '
+  |> String.concat ""
+;;
 
-let init_msg = {|{"client_id": "1219918645770059796", "v": 1}|}
+let init_msg = Printf.sprintf {|{"client_id": "%d", "v": 1}|} !client_id
 
-let write opcode buf =
-  let buf_size = Bytes.length buf in
-  let header = Bytes.create 8 in
-  ignore (Bytes.set_int32_le header 0 (Int32.of_int opcode));
-  ignore (Bytes.set_int32_le header 4 (Int32.of_int buf_size));
-  let full = Bytes.cat header buf in
-  Unix.write sock full 0 (Bytes.length full)
-
-let read () : string =
-  let header = Bytes.create 8 in
-  ignore (Unix.read sock header 0 8);
-
-  let size = Int32.to_int (Bytes.get_int32_le header 4) in
-  let buf = Bytes.create size in
-  ignore (Unix.read sock buf 0 size);
-  Bytes.to_string buf
-
-let print_cool_back_msg discord_msg =
-  if dbg then Printf.printf "\x1b[32mgot back: %s\x1b[m\n%!" discord_msg
-
-let print_cool_write_msg n msg =
-  if dbg then Printf.printf "\x1b[36mwrote(%o): %s\x1b[m\n%!" n msg
+let init_client () =
+  let n = write sock 0 (Bytes.of_string init_msg) in
+  print_cool_write_msg n init_msg;
+  let discord_msg = read sock in
+  print_cool_back_msg discord_msg;
+  ()
+;;
 
 let rec loop =
- fun () ->
-  let n = write 1 (Bytes.of_string msg) in
+  fun () ->
+  let msg = get_msg () in
+  let n = write sock 1 (Bytes.of_string msg) in
   print_cool_write_msg n msg;
-
-  let discord_msg = read () in
+  let discord_msg = read sock in
   print_cool_back_msg discord_msg;
-
-  sleep 1;
+  sleep !sleep_seconds;
   loop ()
 ;;
 
-connect ();;
-
-let n = write 0 (Bytes.of_string init_msg) in
-print_cool_write_msg n msg
-;;
-
-let discord_msg = read () in
-print_cool_back_msg discord_msg
-;;
-
+connect sock socketPath;;
+init_client ();;
 loop ()
