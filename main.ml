@@ -19,7 +19,10 @@ let write opcode buf =
   Unix.write sock full 0 (Bytes.length full)
 
 let read () : string =
-  let size = 428 in
+  let header = Bytes.create 8 in
+  ignore (Unix.read sock header 0 8);
+
+  let size = Int32.to_int (Bytes.get_int32_le header 4) in
   let buf = Bytes.create size in
   ignore (Unix.read sock buf 0 size);
   Bytes.to_string buf
