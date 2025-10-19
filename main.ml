@@ -27,6 +27,7 @@ Arg.parse
       Arg.Set_string socketPath,
       "set discord ipc unix socket (or just pass `$(ss -lx | grep -o '[^ \
        ]*discord[^ ]*' | head -n 1)`)" );
+    "-image", Arg.Set_string activity.image, "set image";
   ]
   (fun _ -> ())
   "discaml cli arguments:"
@@ -78,5 +79,6 @@ let rec loop =
 ;;
 
 connect sock socketPath;;
+print_endline "\x1b[34mconnected\x1b[m";;
 init_client ();;
 loop ()
