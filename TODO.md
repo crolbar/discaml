@@ -1,3 +1,3 @@
-- [ ] nix home manager / nixos module
+- [x] nix home manager / ~nixos module~
 - [ ] buttons ?
 - [ ] small image ?

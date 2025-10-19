@@ -15,7 +15,7 @@ type activity = {
 
 let activity : activity =
   {
-    name = ref "_";
+    name = ref "";
     details = ref "";
     state = ref "";
     t = ref 0;

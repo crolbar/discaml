@@ -1,4 +1,4 @@
 (executable
  (name main)
  (libraries unix)
- (public_name main))
+ (public_name discaml))

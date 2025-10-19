@@ -13,5 +13,15 @@
         ocaml
       ];
     };
+
+    packages.${system}.default = pkgs.ocamlPackages.buildDunePackage {
+      pname = "discaml";
+      version = "0.1";
+      src = ./.;
+    };
+
+    homeManagerModules = {
+      default = import ./module.nix inputs;
+    };
   };
 }
