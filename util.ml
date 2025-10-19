@@ -73,7 +73,7 @@ let parse_script_out out =
     then (
       activity.details := v;
       print_cool_msg ("set details to: " ^ v))
-    else if String.equal key "t"
+    else if String.equal key "type"
     then (
       activity.t := int_of_string v;
       print_cool_msg ("set t to: " ^ v))
@@ -91,7 +91,7 @@ let parse_script_out out =
          ^ key
          ^ "` with value: `"
          ^ v
-         ^ "` Supported are name,state,details,t,started")
+         ^ "` Supported are name,state,details,type,started")
   and key_val_pairs = String.split_on_char ';' out in
   try List.iter f key_val_pairs with
   | Return _ -> ()

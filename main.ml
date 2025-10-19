@@ -21,7 +21,8 @@ Arg.parse
     ( "-script",
       Arg.Set_string tick_script,
       "script that outputs name,details,state and be called each tick (output \
-       format is `name=somename;details=somedetails;state=somestatus`)" );
+       format is `name=somename;details=somedetails;state=somestatus`, \
+       supported keys are `name,state,details,type,started`)" );
     ( "-sock",
       Arg.Set_string socketPath,
       "set discord ipc unix socket (or just pass `$(ss -lx | grep -o '[^ \
