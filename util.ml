@@ -71,6 +71,10 @@ let parse_script_out out =
     then (
       activity.started := int_of_string v;
       print_cool_msg ("set started to: " ^ v))
+    else if String.equal key "image"
+    then (
+      activity.image := v;
+      print_cool_msg ("set image to: " ^ v))
     else
       print_err_msg
         ("got unknown key from script: `"

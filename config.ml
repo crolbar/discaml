@@ -10,15 +10,16 @@ type activity = {
   state : string ref;
   t : int ref;
   started : int ref;
+  image : string ref;
 }
 
 let activity : activity =
   {
-    (* name = String.make 30000 '_'; *)
     name = ref "_";
     details = ref "";
     state = ref "";
-    t = ref 3;
+    t = ref 0;
     started = ref (int_of_float (Unix.gettimeofday () *. 1000.0));
+    image = ref "";
   }
 ;;

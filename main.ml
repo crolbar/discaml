@@ -33,30 +33,22 @@ Arg.parse
 let sock = socket PF_UNIX SOCK_STREAM 0
 
 let get_msg () : string =
-  let timestamp_start =
-    !(activity.started)
-    (* ((int_of_float (Unix.gettimeofday () *. 1000.0)) - 49020000) *)
+  let opt (key : string) (s : string) : string =
+    if String.length s != 0 then Printf.sprintf {|"%s": "%s",|} key s else ""
+  and opt_cond (key : string) (cond : bool) (s : string) : string =
+    if cond then Printf.sprintf {|"%s": %s,|} key s else ""
   in
-  Printf.sprintf
-    {|
-    {"cmd":"SET_ACTIVITY","args":{"activity":{
-    "name":"%s",
-    "details":"%s",
-    "state":"%s",
-    "type":%d,
-    "timestamps":{"start":%d}
-    },
-    "pid":"9999"},"nonce":"-"}
-    |}
-    !(activity.name)
-    !(activity.details)
-    !(activity.state)
-    !(activity.t)
-    timestamp_start
-  |> String.split_on_char '\n'
-  |> String.concat ""
-  |> String.split_on_char ' '
-  |> String.concat ""
+  {|{"cmd":"SET_ACTIVITY","args":{"activity":{|}
+  ^ opt "name" !(activity.name)
+  ^ opt "details" !(activity.details)
+  ^ opt "state" !(activity.state)
+  ^ opt_cond
+      "assets"
+      (String.length !(activity.image) != 0)
+      (Printf.sprintf {|{"large_image":"%s"}|} !(activity.image))
+  ^ Printf.sprintf {|"type":%d,|} !(activity.t)
+  ^ Printf.sprintf {|"timestamps":{"start":%d}|} !(activity.started)
+  ^ {|},"pid":"9999"},"nonce":"-"}|}
 ;;
 
 let init_msg = Printf.sprintf {|{"client_id": "%d", "v": 1}|} !client_id
