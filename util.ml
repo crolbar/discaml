@@ -1,7 +1,20 @@
 open Unix
 open Config
 
-let connect sock socketPath = Unix.connect sock (ADDR_UNIX !socketPath)
+let print_cool_msg msg = if !dbg then Printf.printf "\x1b[34m%s\x1b[m\n%!" msg
+let print_err_msg msg = if !dbg then Printf.printf "\x1b[31m%s\x1b[m\n%!" msg
+
+let connect sock socketPath =
+  try Unix.connect sock (ADDR_UNIX !socketPath) with
+  | Unix.Unix_error (err, f, _) ->
+    print_err_msg
+      ("error: "
+       ^ Unix.error_message err
+       ^ " in function: "
+       ^ f
+       ^ " with sock path: "
+       ^ !socketPath)
+;;
 
 let write sock opcode buf =
   let buf_size = Bytes.length buf in
@@ -28,9 +41,6 @@ let print_cool_back_msg discord_msg =
 let print_cool_write_msg n msg =
   if !dbg then Printf.printf "\x1b[36mwrote(%o): %s\x1b[m\n%!" n msg
 ;;
-
-let print_cool_msg msg = if !dbg then Printf.printf "\x1b[34m%s\x1b[m\n%!" msg
-let print_err_msg msg = if !dbg then Printf.printf "\x1b[31m%s\x1b[m\n%!" msg
 
 let run cmd =
   let inp = Unix.open_process_in cmd in
