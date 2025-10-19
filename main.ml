@@ -18,6 +18,10 @@ Arg.parse
       Arg.Set_int sleep_seconds,
       "seconds to wait between sending activity to discord" );
     "-debug", Arg.Set dbg, "debug logs";
+    ( "-script",
+      Arg.Set_string tick_script,
+      "script that outputs name,details,state and be called each tick (output \
+       format is `name=somename;details=somedetails;state=somestatus`)" );
     ( "-sock",
       Arg.Set_string socketPath,
       "set discord ipc unix socket (or just pass `$(ss -lx | grep -o '[^ \
@@ -67,6 +71,10 @@ let init_client () =
 
 let rec loop =
   fun () ->
+  if String.length !tick_script > 0
+  then (
+    let out = run !tick_script in
+    parse_script_out out);
   let msg = get_msg () in
   let n = write sock 1 (Bytes.of_string msg) in
   print_cool_write_msg n msg;

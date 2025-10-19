@@ -2,6 +2,7 @@ let dbg = ref false
 let socketPath = ref "/run/user/1000/discord-ipc-0"
 let client_id = ref 1429152346092470332
 let sleep_seconds = ref 5
+let tick_script = ref ""
 
 type activity = {
   name : string ref;
