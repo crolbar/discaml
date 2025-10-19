@@ -1,0 +1,51 @@
+on:
+  push:
+    tags:
+      - 'v*'
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout tree
+        uses: actions/checkout@v5
+
+      - name: Set-up OCaml
+        uses: ocaml/setup-ocaml@v3
+        with:
+          ocaml-compiler: 5
+
+      - run: opam install dune -y
+      - run: opam exec -- dune build
+
+      - name: Upload build artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: discaml
+          path: _build/default/main.exe
+
+  release:
+    needs: [ build ]
+    runs-on: ubuntu-latest
+    steps:
+
+      - name: Download
+        uses: actions/download-artifact@v4
+        with:
+          name: discaml
+          path: artifacts
+
+      - name: Package binary
+        run: |
+          cd artifacts
+          tar -czf discaml.tar.gz main.exe
+
+      - name: Release
+        uses: softprops/action-gh-release@v2
+        with:
+          files: |
+            artifacts/*.tar.gz
+        env:
+          GITHUB_TOKEN: ${{ secrets.PAT }}
+ 
