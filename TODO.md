@@ -1,0 +1,3 @@
+- [ ] nix home manager / nixos module
+- [ ] buttons ?
+- [ ] small image ?
